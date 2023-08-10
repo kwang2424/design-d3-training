@@ -9,7 +9,7 @@ const Map = ({ transit, linear }) => {
     const svgRef = useRef(null);
     const tooltipRef = useRef(null);
     const height = 700;
-    const width = 1000;
+    const width = 900;
     const margins = {
         top: 50,
         right: 50,
@@ -45,10 +45,10 @@ const Map = ({ transit, linear }) => {
         const unemployedColors = linear ? d3.scaleSequential(domain, d3.interpolateBlues): d3.scaleSequentialSqrt(domain, d3.interpolateBlues)
 
         const legendSequential = legendColor()
-            .shapeWidth(100)
+            .shapeWidth(40)
             .cells(9)
             .title(transit ? "Legend - Transit Use %" : "Legend - Unemployed %")
-            .orient('vertical')
+            .orient('horizontal')
             .scale(colors)
 
         let tooltip = d3.select(tooltipRef.current)
@@ -112,8 +112,9 @@ const Map = ({ transit, linear }) => {
             </div>
             <div>
                 <div className="tooltip" ref={tooltipRef} />
-                <svg className="map" ref={svgRef} width={width} height={height}></svg>
-                <svg height={600} id="svg-color-quant"></svg>
+                <svg width={600} id="svg-color-quant"></svg>    
+                <svg className="map" ref={svgRef} width={width+50} height={height}></svg>
+                
             </div>
             
 

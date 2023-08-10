@@ -6,7 +6,7 @@ const LineGraph = ({ currData, county }) => {
     const tooltipRef = useRef(null);
 
     const height = 700;
-    const width = 1400;
+    const width = 1000;
     const margins = {
         top: 50,
         right: 50,
@@ -84,7 +84,7 @@ const LineGraph = ({ currData, county }) => {
         g.selectAll('circle')
             .data(currData)
             .join('circle')
-            .attr('cx', d => xScale(parseInt(d.year)))
+            // .attr('cx', d => xScale(parseInt(d.year)))
             .attr('cy', d => {
                 console.log(d.transit, d.year)
                 return yScale(parseFloat(d.transit))}
@@ -94,6 +94,10 @@ const LineGraph = ({ currData, county }) => {
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)
+            .transition()
+            .attr('cx', function(d) {
+                return xScale(parseInt(d.year));
+            })
 
         const xAxis = d3.axisBottom(xScale).ticks(10).tickFormat(x => x);
 

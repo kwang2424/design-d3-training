@@ -14,7 +14,7 @@ const BarGraph = ({ data, state, max }) => {
 
 
     let height = dataLen * 15 + 100;
-    const width = 1400;
+    const width = 1000;
     const margins = {
         top: 50,
         right: 50,
