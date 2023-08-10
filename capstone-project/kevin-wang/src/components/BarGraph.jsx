@@ -1,12 +1,19 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import * as d3 from 'd3';
 import { legendColor, legendHelpers } from 'd3-svg-legend';
 
-const BarGraph = ({ data, state }) => {
+const BarGraph = ({ data, state, max }) => {
     const svgRef = useRef(null);
     const tooltipRef = useRef(null);
-    
-    const height = 1300;
+
+    const dataLen = useMemo(() => {
+        const fips = Object.keys(data);
+        const stateFips = fips.filter(f => data[f].properties.state === state);
+        return stateFips.length;
+    }, [data, state]);
+
+
+    let height = dataLen * 15 + 100;
     const width = 1400;
     const margins = {
         top: 50,
@@ -21,11 +28,11 @@ const BarGraph = ({ data, state }) => {
         const g = svg
             .append('g')
             .attr('class', 'svg-group')
-            .attr('transform', 'translate(' + (margins.left * 3 - 10) + ',' + margins.top / 2+ ')');
+            .attr('transform', 'translate(' + (margins.left * 3 - 10) + ',' + margins.top / 2 + ')');
 
         const colors = d3.scaleOrdinal()
-            .domain(['Transit Use', 'Unemployed %'])
-            .range(['red', 'blue'])
+            .domain(['Unemployed %','Transit Use %'])
+            .range(['#08306b', '#6daed5'])
 
         svg
             .append('g')
@@ -42,21 +49,19 @@ const BarGraph = ({ data, state }) => {
         const stateFips = fips.filter(f => data[f].properties.state === state);
         const relevantData = stateFips.map(f => {
             const countyData = data[f];
-            
+
             return [countyData.properties.county, countyData.data];
         })
-
+        height = relevantData.length * 15 + 100;
         const xScale = d3.scaleLinear()
-            .domain([0, 100])
-            .range([margins.left, width - margins.right * 2])
+            .domain([0, max + 1])
+            .range([0, width - margins.right * 2])
 
         const yDomain = relevantData.map(d => d[0])
 
         const yScale = d3.scalePoint()
             .domain(yDomain)
             .range([0, height - margins.bottom - margins.top])
-
-        // console.log(relevantData)
 
         let tooltip = d3.select(tooltipRef.current)
             .append("div")
@@ -79,8 +84,8 @@ const BarGraph = ({ data, state }) => {
                 .style("opacity", 1)
         }
         const mousemove = function (evt) {
-            const text = "County: " + evt.srcElement.__data__[0] + "<br/>" + "Unemployment: " + parseFloat(evt.srcElement.__data__[1].unemployed)
-             + "<br/>" + "Transit Usage: " + parseFloat(evt.srcElement.__data__[1].transit);
+            const text = "County: " + evt.srcElement.__data__[0] + "<br/>" + "Unemployment: " + parseFloat(evt.srcElement.__data__[1].unemployed) + "%"
+                + "<br/>" + "Transit Usage: " + parseFloat(evt.srcElement.__data__[1].transit) + "%";
             tooltip
                 .html(text)
                 .style("top", d3.pointer(evt, this)[1] + 'px')
@@ -98,10 +103,10 @@ const BarGraph = ({ data, state }) => {
         g.selectAll("rect")
             .data(relevantData)
             .join("rect")
-            .attr("y", d => yScale(d[0])- 5 + 'px')
+            .attr("y", d => yScale(d[0]) - 5 + 'px')
             .attr("width", d => xScale(parseFloat(d[1].unemployed)))
             .attr("height", '5px')
-            .attr("fill", "blue")
+            .attr("fill", "#08306b")
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)
@@ -112,23 +117,24 @@ const BarGraph = ({ data, state }) => {
             .attr("y", d => yScale(d[0]))
             .attr("width", d => xScale(parseFloat(d[1].transit)))
             .attr("height", '5px')
-            .attr("fill", "red")
+            .attr("fill", "#6daed5")
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)
-        
-        g.append("text")
-            .text("Unemployment and Transit Usage by County in " + state)
-            .attr("x", (width - margins.left - margins.right) / 2)
-            .attr("y", -margins.top / 4)
-            .attr("text-anchor", "middle")
+
+        // g.append("text")
+        //     .text("Unemployment and Transit Usage by County in " + state)
+        //     .attr("x", (width - margins.left - margins.right) / 2)
+        //     .attr("y", -margins.top / 4)
+        //     .attr("text-anchor", "middle")
 
         g.append("g")
-            .attr("transform", "translate(" + -(margins.left) + "," + (height - margins.top - margins.bottom + 5) + ")")
+            .attr("transform", "translate(" + -(0) + "," + (height - margins.top - margins.bottom + 10) + ")")
             .call(d3.axisBottom(xScale));
+
         g.append("g")
             .call(d3.axisLeft(yScale));
-        
+
         svg.append("text")
             .attr("x", width / 2)
             .attr("y", height - margins.bottom / 4)
@@ -136,17 +142,20 @@ const BarGraph = ({ data, state }) => {
             .text("Percent (x 100)")
 
         svg.select(".legendQuant")
-            .attr("transform", "translate(" + (width - margins.right * 3) + "," + (margins.top / 2) + ")")
+            .attr("transform", "translate(" + (width - margins.right * 3) + "," + (10) + ")")
             .call(legend);
-            
+
     }, [data, state])
 
     return (
         <div>
-                <div className="tooltip" ref={tooltipRef} />
-                <div className="bar-container">
+            <div className="bar-header">
+                <h2>{"Unemployment and Transit Usage by County in " + state}</h2>
+            </div>
+            <div className="tooltip" ref={tooltipRef} />
+            <div className="bar-container">
                 <svg ref={svgRef} width={width} height={height}></svg>
-                    {/* <svg ref={legendRef} id="svg-color-quant"></svg> */}
+                {/* <svg ref={legendRef} id="svg-color-quant"></svg> */}
 
             </div>
         </div>

@@ -4,7 +4,7 @@ import * as d3 from "d3";
 import { legendColor } from 'd3-svg-legend'
 
 
-const Map = ({ transit }) => {
+const Map = ({ transit, linear }) => {
     const [data, setData] = useState(geoJson);
     const svgRef = useRef(null);
     const tooltipRef = useRef(null);
@@ -35,25 +35,18 @@ const Map = ({ transit }) => {
         const projection = d3.geoAlbersUsa();
         const geoGen = d3.geoPath().projection(projection);
 
-        const minUnemployment = d3.min(data.features, d => parseFloat(d.properties.unemployed));
-        const maxUnemployment = d3.max(data.features, d => parseFloat(d.properties.unemployed));
-        const minTransit = d3.min(data.features, d => parseFloat(d.properties.transit));
-        const maxTransit = d3.max(data.features, d => parseFloat(d.properties.transit));
-        const domain = transit ? [minTransit, maxTransit] : [minUnemployment, maxUnemployment]
+        const domain = transit ? d3.extent(data.features, d => parseFloat(d.properties.transit)): d3.extent(data.features, d => parseFloat(d.properties.unemployed))
 
-        // const colors = d3.scaleQuantile()
+        const colors = linear ? d3.scaleSequential(domain, d3.interpolateBlues) : d3.scaleSequentialSqrt(domain, d3.interpolateBlues)
+
+        // const colors = d3.scaleSequentialQuantile(d3.interpolateBlues)
         //     .domain(domain)
-        //     .range(d3.schemeBlues[6])
-        const colors = d3.scaleSequentialSqrt()
-            .domain(domain)
-            .interpolator(d3.interpolateBlues)
-        const unemployedColors = d3.scaleSequential()
-            .domain(domain)
-            .interpolator(d3.interpolateBlues);
+            // .interpolator(d3.interpolateBlues)
+        const unemployedColors = linear ? d3.scaleSequential(domain, d3.interpolateBlues): d3.scaleSequentialSqrt(domain, d3.interpolateBlues)
 
         const legendSequential = legendColor()
-            .shapeWidth(30)
-            .cells(5)
+            .shapeWidth(100)
+            .cells(9)
             .title(transit ? "Legend - Transit Use %" : "Legend - Unemployed %")
             .orient('vertical')
             .scale(colors)
@@ -113,15 +106,16 @@ const Map = ({ transit }) => {
             .call(legendSequential)
     }, [transit]);
     return (
-        <>  
+        <>
             <div className="map-header">
-            <h2>{transit ? "Map of Transit Use % By County" : "Map of Unemployment % by County"}</h2>
+                <h2>{transit ? "Map of Transit Use % By County" : "Map of Unemployment % by County"}</h2>
             </div>
             <div>
                 <div className="tooltip" ref={tooltipRef} />
                 <svg className="map" ref={svgRef} width={width} height={height}></svg>
-                <svg id="svg-color-quant"></svg>
+                <svg height={600} id="svg-color-quant"></svg>
             </div>
+            
 
         </>)
 }

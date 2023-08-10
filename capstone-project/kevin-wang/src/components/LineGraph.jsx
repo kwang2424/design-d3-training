@@ -2,10 +2,11 @@ import { useEffect, useRef } from 'react';
 import *  as d3 from 'd3';
 
 const LineGraph = ({ currData, county }) => {
-    console.log(currData)
     const svgRef = useRef(null);
+    const tooltipRef = useRef(null);
+
     const height = 700;
-    const width = 1000;
+    const width = 1400;
     const margins = {
         top: 50,
         right: 50,
@@ -31,7 +32,42 @@ const LineGraph = ({ currData, county }) => {
         const yScale = d3.scaleLinear()
             .domain([minTransit, maxTransit+1])
             .range([height - margins.bottom * 2, margins.top]);
-            
+        
+        let tooltip = d3.select(tooltipRef.current)
+            .append("div")
+            .attr("class", "tooltip")
+            .style("display", "none")
+            .style('position', 'absolute')
+            .style("color", "black")
+            .style("background-color", "white")
+            .style('width', '150px')
+            .style("border", "solid")
+            .style("border-width", "2px")
+            .style("border-radius", "5px")
+            .style("padding", "5px")
+
+        const mouseover = function (d) {
+            tooltip.style("display", "block")
+            d3.select(this)
+                .style("stroke-width", "2px")
+                .style("opacity", 1)
+        }
+        const mousemove = function (evt, d) {
+            // console.log('data', evt.srcElement.__data__)
+            const text = `${evt.srcElement.__data__.year}: ${evt.srcElement.__data__.transit}%`
+            tooltip
+                .html(text)
+                .style("top", d3.pointer(evt, this)[1] + 'px')
+                .style("left", d3.pointer(evt, this)[0] + 'px')
+        };
+
+        const mouseleave = function (d) {
+            tooltip
+                .style("display", "none")
+            d3.select(this)
+                .style("stroke-width", "1px")
+                .style("opacity", 1)
+        }
 
         const line = d3.line()
             .x(d => xScale(parseInt(d.year)))
@@ -42,8 +78,9 @@ const LineGraph = ({ currData, county }) => {
             .join('path')
             .attr('d', d => line(d))
             .attr('fill', 'none')
-            .attr('stroke', '#41b248')
+            .attr('stroke', '#88d2dd')
             .attr('stroke-width', 1.5)
+
         g.selectAll('circle')
             .data(currData)
             .join('circle')
@@ -54,6 +91,9 @@ const LineGraph = ({ currData, county }) => {
                 )
             .attr('r', 3)
             .attr('fill', 'black')
+            .on("mouseover", mouseover)
+            .on("mousemove", mousemove)
+            .on("mouseleave", mouseleave)
 
         const xAxis = d3.axisBottom(xScale).ticks(10).tickFormat(x => x);
 
@@ -68,12 +108,12 @@ const LineGraph = ({ currData, county }) => {
             .call(d3.axisLeft(yScale))
             
 
-        svg.append('text')
-            .attr('x', width / 2)
-            .attr('y', margins.top)
-            .attr('text-anchor', 'middle')
-            .style('font-size', '20px')
-            .text('Public Transit Use by Year in ' + county)
+        // svg.append('text')
+        //     .attr('x', width / 2)
+        //     .attr('y', margins.top)
+        //     .attr('text-anchor', 'middle')
+        //     .style('font-size', '20px')
+        //     .text('Public Transit Use by Year in ' + county)
 
         svg.append('text')
             .attr('transform', 'rotate(-90)')
@@ -90,9 +130,13 @@ const LineGraph = ({ currData, county }) => {
     }, [currData])
     return (
         <>
-            <div className="line-graph">
-                <svg ref={svgRef} width={width} height={height}></svg>
+            <div className="line-header">
+                <h2>Public Transit Use by Year in {county}</h2>
             </div>
+                <div className="tooltip" ref={tooltipRef} />
+
+
+                <svg ref={svgRef} width={width} height={height}></svg>
         </>
     )
 }
