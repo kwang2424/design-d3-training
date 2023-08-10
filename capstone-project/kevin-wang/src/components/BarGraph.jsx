@@ -7,7 +7,7 @@ const BarGraph = ({ data, state }) => {
     const tooltipRef = useRef(null);
     
     const height = 1300;
-    const width = 1000;
+    const width = 1400;
     const margins = {
         top: 50,
         right: 50,
@@ -95,7 +95,7 @@ const BarGraph = ({ data, state }) => {
                 .style("opacity", 1)
         };
 
-        const bars = g.selectAll("rect")
+        g.selectAll("rect")
             .data(relevantData)
             .join("rect")
             .attr("y", d => yScale(d[0])- 5 + 'px')
@@ -106,7 +106,7 @@ const BarGraph = ({ data, state }) => {
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)
 
-        const transitBars = g.selectAll(".transit-bars")
+        g.selectAll(".transit-bars")
             .data(relevantData)
             .join("rect")
             .attr("y", d => yScale(d[0]))
@@ -134,6 +134,7 @@ const BarGraph = ({ data, state }) => {
             .attr("y", height - margins.bottom / 4)
             .attr("text-anchor", "middle")
             .text("Percent (x 100)")
+
         svg.select(".legendQuant")
             .attr("transform", "translate(" + (width - margins.right * 3) + "," + (margins.top / 2) + ")")
             .call(legend);
@@ -141,16 +142,14 @@ const BarGraph = ({ data, state }) => {
     }, [data, state])
 
     return (
-        <>
-            <div>
+        <div>
                 <div className="tooltip" ref={tooltipRef} />
                 <div className="bar-container">
-                    <svg ref={svgRef} width={width} height={height}></svg>
+                <svg ref={svgRef} width={width} height={height}></svg>
                     {/* <svg ref={legendRef} id="svg-color-quant"></svg> */}
-                </div>
-                
+
             </div>
-        </>
+        </div>
     )
 }
 

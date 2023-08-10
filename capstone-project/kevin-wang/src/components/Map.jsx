@@ -17,12 +17,7 @@ const Map = ({ transit }) => {
         left: 50,
     };
 
-    // calculate dimensions without margins
-    const innerHeight = height - margins.top - margins.bottom;
-    const innerWidth = width - margins.left - margins.right;
-
     useEffect(() => {
-        // console.log(svgRef.current, d3.select(svgRef.current))
         const svg = d3.select(svgRef.current);
         const legendSvg = d3.select('#svg-color-quant');
         legendSvg.append("g")
@@ -46,17 +41,20 @@ const Map = ({ transit }) => {
         const maxTransit = d3.max(data.features, d => parseFloat(d.properties.transit));
         const domain = transit ? [minTransit, maxTransit] : [minUnemployment, maxUnemployment]
 
-
+        // const colors = d3.scaleQuantile()
+        //     .domain(domain)
+        //     .range(d3.schemeBlues[6])
         const colors = d3.scaleSequentialSqrt()
             .domain(domain)
-            .interpolator(d3.interpolateGnBu)
-
+            .interpolator(d3.interpolateBlues)
         const unemployedColors = d3.scaleSequential()
             .domain(domain)
-            .interpolator(d3.interpolateGnBu);
+            .interpolator(d3.interpolateBlues);
+
         const legendSequential = legendColor()
             .shapeWidth(30)
             .cells(5)
+            .title(transit ? "Legend - Transit Use %" : "Legend - Unemployed %")
             .orient('vertical')
             .scale(colors)
 
@@ -84,8 +82,8 @@ const Map = ({ transit }) => {
                 : `${evt.srcElement.__data__.properties.name}: ${evt.srcElement.__data__.properties.unemployed}`
             tooltip
                 .html(text)
-                .style("left", evt.pageX + 'px')
-                .style("top", evt.pageY + 'px')
+                .style("top", d3.pointer(evt, this)[1] + 'px')
+                .style("left", d3.pointer(evt, this)[0] + 'px')
         };
 
         const mouseleave = function (d) {
@@ -105,13 +103,20 @@ const Map = ({ transit }) => {
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)
-
+        // svg.append('text')
+        //     .attr('x', width / 2)
+        //     .attr('y', margins.top)
+        //     .attr('text-anchor', 'middle')
+        //     .text(transit ? 'Map of Transit Use % by County' : 'Map of Unemployment % by County')
 
         legendSvg.select('.legendSequential')
             .call(legendSequential)
     }, [transit]);
     return (
-        <>
+        <>  
+            <div className="map-header">
+            <h2>{transit ? "Map of Transit Use % By County" : "Map of Unemployment % by County"}</h2>
+            </div>
             <div>
                 <div className="tooltip" ref={tooltipRef} />
                 <svg className="map" ref={svgRef} width={width} height={height}></svg>

@@ -3,6 +3,7 @@ import Map from './components/Map';
 import BarGraph from './components/BarGraph';
 import './App.css';
 import LineGraph from './components/LineGraph';
+import MainText from './components/MainText';
 import transitYearData from '../data/transitYearData.json';
 import transit2020Data from '../data/transit2020Data.json';
 
@@ -28,7 +29,7 @@ function App() {
             if (state === 'None') return true;
             return county[1] === state
         });
-        return <select onChange={(evt) => setCounty(evt.target.value)}>
+        return <select value={county} onChange={(evt) => setCounty(evt.target.value)}>
             {filteredCounties.map(county => {
                 return (
                     <option key={county[0]} value={county[0]}>{county[0]}</option>
@@ -66,26 +67,37 @@ function App() {
 
     const MapComponent = () => {
         return (
+            <div>
             <div className="map-buttons">
                 <button onClick={() => setTransit(true)}>Transit</button>
                 <button onClick={() => setTransit(false)}>Unemployment</button>
-                <Map transit={transit} />
+            </div>
+            <Map transit={transit} />
             </div>
         )
     };
 
     const LineComponent = () => {
         return (
-            <>
-                {countiesMenu()}
-                {statesMenu()}
+            <div>
+                <div className="county-buttons">
+                    {countiesMenu()}
+                    {statesMenu()}
+                </div>
+                <div>
+                    <p>For a different way to visualize the progress of public transportation in America, this graph illustrates the change in public transit use
+                    among workers in each county. The data is from 2010 to 2020, and the data is filtered by county, so by using the dropdown below, 
+                    you can see the data for your selected county. The state filter is for county choices as a way to get rid of duplicate county names, so when filtering by state,
+                    the data will not change until a new county is selected.
+                    </p>
+                </div>
                 <LineGraph currData={currData} county={county} />
-            </>)
+            </div>)
     };
 
     const BarGraphComponent = () => {
         return (
-            <>
+  
             <div>
                 <p>
                     Here is the full data for public transportation usage and unemployment in 2020, transit usage is in red while 
@@ -97,23 +109,28 @@ function App() {
                     there exists a relationship between public transit and unemployment. Since unemployment is quite the complicated metric, it is pinpoint
                     specific metrics that cause unemployment, but it is interesting to see if there exists some relationship. 
                 </p>
+            <div className="bar-button">
+                {barStatesMenu()}
             </div>
-            {barStatesMenu()}
             <BarGraph data={transit2020Data} state={barState}/>
-            </>
+            
+            </div>
         )
     };
     return (
         <>
             <div>
                 <h1>Public Transportation and Unemployment</h1>
+                <MainText />
             </div>
             <div className="buttons-container">
                 <button onClick={() => setGraph('map')}>Map</button>
                 <button onClick={() => setGraph('line')}>Line Graph</button>
                 <button onClick={() => setGraph('bar')}>See Data</button>
             </div>
+            <div className='viz'>
             {graph === 'map' ? <MapComponent /> : (graph === 'line' ? <LineComponent /> : <BarGraphComponent />)}
+            </div>
         </>
     )
 }

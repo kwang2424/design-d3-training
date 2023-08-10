@@ -90,7 +90,7 @@ const LineGraph = ({ currData, county }) => {
     }, [currData])
     return (
         <>
-            <div>
+            <div className="line-graph">
                 <svg ref={svgRef} width={width} height={height}></svg>
             </div>
         </>

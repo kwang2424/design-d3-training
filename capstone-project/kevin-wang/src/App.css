@@ -47,12 +47,52 @@
   color: #fff;
 }
 
-.button-container {
-  display: block;
+.buttons-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+  margin-top: 40px;
+  gap: 20px;
+}
+
+.map-buttons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    margin-top: 40px;
+    gap: 20px;
+}
+
+.map-header {
+  display: flex;
+  justify-content: center;
+  /* gap: 20px; */
+}
+.county-buttons, .bar-button {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 40px;
+  /* margin-top: 40px; */
+}
+.viz {
+  display: flex;
+  justify-content: center;
+}
+
+.line-graph {
+  display: flex;
+  justify-content: center;
   margin-bottom: 40px;
   margin-top: 40px;
 }
 
+.bar-graph {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+  margin-top: 40px;
+}
 /* .map-buttons {
   margin-top: 40px;
 } */
