@@ -1,8 +1,11 @@
 import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import { legendColor, legendHelpers } from 'd3-svg-legend';
 
 const BarGraph = ({ data, state }) => {
     const svgRef = useRef(null);
+    const tooltipRef = useRef(null);
+    
     const height = 1300;
     const width = 1000;
     const margins = {
@@ -20,9 +23,19 @@ const BarGraph = ({ data, state }) => {
             .attr('class', 'svg-group')
             .attr('transform', 'translate(' + (margins.left * 3 - 10) + ',' + margins.top / 2+ ')');
 
-        // const color = d3.scaleOrdinal()
-        //     .domain(['year', 'transit'])
-        //     .range(['#41b248', '#f9c74f']);
+        const colors = d3.scaleOrdinal()
+            .domain(['Transit Use', 'Unemployed %'])
+            .range(['red', 'blue'])
+
+        svg
+            .append('g')
+            .attr('class', 'legendQuant')
+            .attr('transform', 'translate(20,20)')
+
+        const legend = legendColor()
+            .shape("path", d3.symbol().type(d3.symbolSquare).size(150)())
+            .shapePadding(10)
+            .scale(colors)
 
         // want data in state, county, year, transit format
         const fips = Object.keys(data);
@@ -32,11 +45,6 @@ const BarGraph = ({ data, state }) => {
             
             return [countyData.properties.county, countyData.data];
         })
-
-        // const minTransit = d3.min(relevantData, d => parseFloat(d[1].transit));
-        // const maxTransit = d3.max(relevantData, d => parseFloat(d[1].transit));
-        // const minUnemployment = d3.min(relevantData, d => parseFloat(d[1].unemployed));
-        // const maxUnemployment = d3.max(relevantData, d => parseFloat(d[1].unemployed));
 
         const xScale = d3.scaleLinear()
             .domain([0, 100])
@@ -48,27 +56,66 @@ const BarGraph = ({ data, state }) => {
             .domain(yDomain)
             .range([0, height - margins.bottom - margins.top])
 
-        console.log(relevantData)
+        // console.log(relevantData)
+
+        let tooltip = d3.select(tooltipRef.current)
+            .append("div")
+            .attr("class", "tooltip")
+            .style("display", "none")
+            .style('position', 'absolute')
+            .style("color", "black")
+            .style("background-color", "white")
+            .style('width', '250px')
+            .style("border", "solid")
+            .style("border-width", "2px")
+            .style("border-radius", "5px")
+            .style("padding", "5px")
+
+        const mouseover = function () {
+            tooltip.style("display", "block")
+            d3.select(this)
+                .style('border', 'solid')
+                .style("border-width", "2px")
+                .style("opacity", 1)
+        }
+        const mousemove = function (evt) {
+            const text = "County: " + evt.srcElement.__data__[0] + "<br/>" + "Unemployment: " + parseFloat(evt.srcElement.__data__[1].unemployed)
+             + "<br/>" + "Transit Usage: " + parseFloat(evt.srcElement.__data__[1].transit);
+            tooltip
+                .html(text)
+                .style("top", d3.pointer(evt, this)[1] + 'px')
+                .style("left", d3.pointer(evt, this)[0] + 'px')
+        };
+
+        const mouseleave = function () {
+            tooltip
+                .style("display", "none")
+            d3.select(this)
+                .style("border-width", "0px")
+                .style("opacity", 1)
+        };
+
         const bars = g.selectAll("rect")
             .data(relevantData)
             .join("rect")
-            .attr("y", d => {
-                console.log(d[0], yScale(d[0]))
-                return yScale(d[0])- 5 + 'px'
-            })
+            .attr("y", d => yScale(d[0])- 5 + 'px')
             .attr("width", d => xScale(parseFloat(d[1].unemployed)))
             .attr("height", '5px')
-            .attr("fill", "blue"); // Choose a color for the unemployed bars
+            .attr("fill", "blue")
+            .on("mouseover", mouseover)
+            .on("mousemove", mousemove)
+            .on("mouseleave", mouseleave)
+
         const transitBars = g.selectAll(".transit-bars")
             .data(relevantData)
             .join("rect")
-            .attr("y", d => {
-                console.log(d[0], yScale(d[0]))
-                return yScale(d[0])
-            })
+            .attr("y", d => yScale(d[0]))
             .attr("width", d => xScale(parseFloat(d[1].transit)))
             .attr("height", '5px')
-            .attr("fill", "red"); // Choose a color for the unemployed bars
+            .attr("fill", "red")
+            .on("mouseover", mouseover)
+            .on("mousemove", mousemove)
+            .on("mouseleave", mouseleave)
         
         g.append("text")
             .text("Unemployment and Transit Usage by County in " + state)
@@ -80,16 +127,30 @@ const BarGraph = ({ data, state }) => {
             .attr("transform", "translate(" + -(margins.left) + "," + (height - margins.top - margins.bottom + 5) + ")")
             .call(d3.axisBottom(xScale));
         g.append("g")
-            .attr('transform', 'translate(' - (margins.left) + ',0)')	
             .call(d3.axisLeft(yScale));
         
-        
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height - margins.bottom / 4)
+            .attr("text-anchor", "middle")
+            .text("Percent (x 100)")
+        svg.select(".legendQuant")
+            .attr("transform", "translate(" + (width - margins.right * 3) + "," + (margins.top / 2) + ")")
+            .call(legend);
+            
     }, [data, state])
 
     return (
-        <div>
-            <svg ref={svgRef} width={width} height={height}></svg>
-        </div>
+        <>
+            <div>
+                <div className="tooltip" ref={tooltipRef} />
+                <div className="bar-container">
+                    <svg ref={svgRef} width={width} height={height}></svg>
+                    {/* <svg ref={legendRef} id="svg-color-quant"></svg> */}
+                </div>
+                
+            </div>
+        </>
     )
 }
 

@@ -50,7 +50,7 @@ const Map = ({ transit }) => {
         const colors = d3.scaleSequentialSqrt()
             .domain(domain)
             .interpolator(d3.interpolateGnBu)
-        // .range(d3.schemeBlues[9])
+
         const unemployedColors = d3.scaleSequential()
             .domain(domain)
             .interpolator(d3.interpolateGnBu);

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import *  as d3 from 'd3';
 
 const LineGraph = ({ currData, county }) => {
+    console.log(currData)
     const svgRef = useRef(null);
     const height = 700;
     const width = 1000;
@@ -20,7 +21,7 @@ const LineGraph = ({ currData, county }) => {
             .attr('class', 'svg-group')
             .attr('transform', 'translate(' + margins.left + ',' + margins.top + ')');
 
-        const xScale = d3.scaleTime()
+        const xScale = d3.scaleLinear()
             .domain([2010, 2020])
             .range([margins.left, width - margins.right * 2])
 
@@ -28,12 +29,13 @@ const LineGraph = ({ currData, county }) => {
         const maxTransit = d3.max(currData, d => d.transit);
 
         const yScale = d3.scaleLinear()
-            .domain([minTransit, maxTransit])
+            .domain([minTransit, maxTransit+1])
             .range([height - margins.bottom * 2, margins.top]);
+            
 
         const line = d3.line()
-            .x(d => xScale(d.year))
-            .y(d => yScale(d.transit))
+            .x(d => xScale(parseInt(d.year)))
+            .y(d => yScale(parseFloat(d.transit)))
 
         g.selectAll('path')
             .data([currData])
@@ -45,20 +47,26 @@ const LineGraph = ({ currData, county }) => {
         g.selectAll('circle')
             .data(currData)
             .join('circle')
-            .attr('cx', d => xScale(d.year))
-            .attr('cy', d => yScale(d.transit))
+            .attr('cx', d => xScale(parseInt(d.year)))
+            .attr('cy', d => {
+                console.log(d.transit, d.year)
+                return yScale(parseFloat(d.transit))}
+                )
             .attr('r', 3)
             .attr('fill', 'black')
+
+        const xAxis = d3.axisBottom(xScale).ticks(10).tickFormat(x => x);
 
         g.append('g')
             .attr('class', 'x-axis')
             .attr('transform', `translate(0, ${height - margins.bottom * 2})`)
-            .call(d3.axisBottom(xScale))
+            .call(xAxis)
 
         g.append('g')
             .attr('class', 'y-axis')
             .attr('transform', `translate(${margins.left}, 0)`)
             .call(d3.axisLeft(yScale))
+            
 
         svg.append('text')
             .attr('x', width / 2)
@@ -76,14 +84,16 @@ const LineGraph = ({ currData, county }) => {
 
         svg.append('text')
             .attr('x', width / 2)
-            .attr('y', height - margins.bottom / 2)
+            .attr('y', height)
             .attr('text-anchor', 'middle')
             .text('Year')
     }, [currData])
     return (
-        <div>
-            <svg ref={svgRef} width={width} height={height}></svg>
-        </div>
+        <>
+            <div>
+                <svg ref={svgRef} width={width} height={height}></svg>
+            </div>
+        </>
     )
 }
 export default LineGraph;

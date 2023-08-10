@@ -47,3 +47,12 @@
   color: #fff;
 }
 
+.button-container {
+  display: block;
+  margin-bottom: 40px;
+  margin-top: 40px;
+}
+
+/* .map-buttons {
+  margin-top: 40px;
+} */
